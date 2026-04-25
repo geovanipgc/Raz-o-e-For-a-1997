@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Razão e Força Nº 1997 · Sistema Integrado</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js">
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js">
+  </script>
+  <style>
+    :root {
+      --azul: #0c1f34;
+      --azul2: #153354;
+      --dourado: #c89b3c;
+      --dourado-claro: #e8c96a;
+      --verde: #1f8f5f;
+      --vermelho: #b94141;
+      --cinza: #f0f2f6;
+      --texto: #1c2430;
+      --borda: #d9dee7;
+      --branco: #fff;
+      --sombra: 0 8px 24px rgba(12, 20, 35, 0.08);
+      --raio: 14px;
+      --bg-aside: linear-gradient(180deg, #0c1f34 0%, #071320 100%);
+      --cor-menu: #d0d8e4;
+      --cor-texto-aside: #fff;
+      transition: background 0.3s, color 0.3s, border-color 0.3s, box-shadow 0.3s;
+    }
+    body.dark {
+      --azul: #e0e8f0;
+      --azul2: #8fa4c4;
+      --dourado: #e2b44c;
+      --cinza: #121824;
+      --texto: #cdd6e4;
+      --borda: #2a3344;
+      --branco: #1a2232;
+      --sombra: 0 8px 20px rgba(0,0,0,0.4);
+      --bg-aside: linear-gradient(180deg, #050a14 0%, #0a1422 100%);
+      --cor-menu: #b0bec5;
+      --cor-texto-aside: #e0e0e0;
+      background: #0e1622;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--cinza);
+      color: var(--texto);
+      min-height: 100vh;
+    }
+    .tela-overlay {
+      position: fixed; inset: 0; z-index: 9999;
+      background: linear-gradient(135deg, #0c1f34, #14304f);
+      display: flex; align-items: center; justify-content: center;
+      transition: opacity 0.4s, visibility 0.4s;
+    }
+    .tela-overlay.oculta { opacity: 0; visibility: hidden; pointer-events: none; }
+    .login-card, .recuperacao-card {
+      background: var(--branco); border-radius: 20px; padding: 32px;
+      width: 100%; max-width: 420px; box-shadow: 0 25px 60px rgba(0,0,0,0.35);
+      text-align: center; color: var(--texto);
+    }
+    .login-logo { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; border: 3px solid var(--dourado); margin: 0 auto 16px; display: block; }
+    .campo { text-align: left; margin-bottom: 16px; }
+    .campo label { font-size: 13px; font-weight: 600; color: var(--azul); }
+    .campo input, .campo select, .campo textarea {
+      width: 100%; padding: 12px; border: 2px solid var(--borda); border-radius: 12px;
+      background: var(--branco); color: var(--texto); font-size: 14px;
+    }
+    .input-senha { position: relative; }
+    .input-senha input { padding-right: 50px; }
+    .btn-olho {
+      position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer; font-size: 22px;
+      padding: 0; line-height: 1;
+    }
+    .btn-login { width: 100%; padding: 14px; background: var(--dourado); color: #1f1a10; border: none; border-radius: 14px; font-weight: 700; cursor: pointer; }
+    .link-recuperar { font-size: 13px; color: var(--azul2); cursor: pointer; text-decoration: underline; display: inline-block; margin-top: 14px; }
+    .app { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; }
+    .app.oculto { display: none; }
+    aside {
+      background: var(--bg-aside); color: var(--cor-texto-aside); padding: 20px;
+      display: flex; flex-direction: column; gap: 12px; z-index: 10; height: 100vh; overflow-y: auto;
+    }
+    .marca { display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 16px; }
+    .logo-mini { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid var(--dourado); }
+    nav button {
+      width: 100%; border: none; border-radius: 10px; padding: 11px 14px;
+      background: transparent; color: var(--cor-menu); text-align: left;
+      cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 13px;
+    }
+    nav button.ativo { background: rgba(200,155,60,0.25); color: var(--dourado); font-weight: 700; }
+    .btn-logout { background: rgba(255,255,255,0.1); border: none; color: #fff; padding: 7px 12px; border-radius: 8px; cursor: pointer; }
+    main { padding: 24px; overflow-y: auto; background: var(--cinza); }
+    .secao { display: none; }
+    .secao.ativa { display: block; }
+    .grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 14px; }
+    .card {
+      background: var(--branco); border: 1px solid var(--borda); border-radius: var(--raio);
+      padding: 18px; box-shadow: var(--sombra); margin-bottom: 14px;
+    }
+    .metric { font-size: 28px; font-weight: 800; color: var(--azul); }
+    table { width: 100%; border-collapse: collapse; background: var(--branco); }
+    th, td { padding: 11px; border-bottom: 1px solid var(--borda); text-align: left; font-size: 13px; }
+    th { background: #f4f6fa; color: var(--azul); cursor: pointer; }
+    .btn {
+      border: none; border-radius: 10px; padding: 9px 14px; background: var(--azul2);
+      color: #fff; font-weight: 600; cursor: pointer; transition: 0.2s;
+    }
+    .btn.verde { background: var(--verde); }
+    .btn.vermelho { background: var(--vermelho); }
+    .btn.dourado { background: var(--dourado); color: #1f1a10; }
+    .theme-toggle {
+      position: fixed; bottom: 20px; right: 20px; z-index: 1000;
+      width: 48px; height: 48px; border-radius: 50%; background: var(--dourado);
+      border: none; font-size: 24px; cursor: pointer;
+    }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 10000; }
+    .modal-overlay.oculta { display: none; }
+    .modal-card { background: var(--branco); border-radius: 18px; padding: 24px; max-width: 500px; width: 90%; color: var(--texto); }
+    .search-bar { width: 100%; padding: 12px; border-radius: 12px; border: 2px solid var(--borda); margin-bottom: 14px; }
+    .saudacao { font-size: 14px; font-weight: 600; color: var(--dourado); }
+    .foto-mini { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--dourado); }
+    @media (max-width: 980px) { .app { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body class="light">
+  <!-- ========== TELA DE LOGIN ========== -->
+  <div id="telaLogin" class="tela-overlay">
+    <div class="login-card">
+      <img id="logoLogin" class="login-logo" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Ccircle cx='45' cy='45' r='44' fill='%23f5f0e6' stroke='%23c89b3c' stroke-width='3'/%3E%3Ctext x='45' y='52' text-anchor='middle' font-size='28' fill='%23c89b3c' font-weight='bold'%3ERF%3C/text%3E%3C/svg%3E">
+      <h2>Razão e Força Nº 1997</h2>
+      <p class="subtitulo">Sistema Integrado de Gestão</p>
+      <div id="msgErroLogin" style="background:#fff0f0;color:#a12b2b;padding:10px;border-radius:10px;display:none;"></div>
+      <div class="campo"><label>CIM (6 dígitos)</label><input type="text" id="cimLogin" placeholder="000000" maxlength="6"></div>
+      <div class="campo input-senha"><label>Senha</label><input type="password" id="senhaLogin"><button class="btn-olho" onclick="toggleSenhaLogin()">👁️</button></div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;font-size:13px;"><input type="checkbox" id="lembrarLogin"> Lembrar acesso</div>
+      <button class="btn-login" onclick="fazerLogin()">🔐 Entrar</button>
+      <span class="link-recuperar" onclick="mostrarRecuperacao()">Esqueci minha senha</span>
+    </div>
+  </div>
+  <!-- ========== RECUPERAÇÃO ========== -->
+  <div id="telaRecuperacao" class="tela-overlay oculta">
+    <div class="recuperacao-card">
+      <h2>🔑 Recuperar senha</h2>
+      <div id="msgRecuperacao" style="background:#e8f5ee;padding:10px;border-radius:10px;display:none;"></div>
+      <div id="msgErroRec" style="background:#fff0f0;padding:10px;border-radius:10px;display:none;"></div>
+      <div class="campo"><label>CIM</label><input type="text" id="cimRecuperacao" placeholder="000000" maxlength="6"></div>
+      <div class="campo"><label>E-mail cadastrado</label><input type="email" id="emailRecuperacao"></div>
+      <button class="btn-login" onclick="recuperarSenha()">📩 Enviar instruções</button>
+      <span style="font-size:13px;color:#667085;cursor:pointer;margin-top:10px;display:inline-block;" onclick="voltarLogin()">← Voltar</span>
+    </div>
+  </div>
+  <!-- ========== MODAIS ========== -->
+  <div id="modalLogo" class="modal-overlay oculta">
+    <div class="modal-card"><h3>🖼️ Alterar logomarca</h3><img id="previewLogoAtual" class="login-logo" style="width:80px;height:80px;" src=""><br><input type="file" id="arquivoLogo" accept="image/*"><br><br><button class="btn verde" onclick="salvarNovaLogo()">💾 Salvar</button><button class="btn claro" onclick="fecharModalLogo()">Cancelar</button><button class="btn vermelho sm" onclick="restaurarLogoPadrao()">🔄 Padrão</button></div>
+  </div>
+  <div id="modalSenhaExclusao" class="modal-overlay oculta">
+    <div class="modal-card"><h3>🔒 Confirmação de exclusão</h3><p>Digite a senha do Administrador para confirmar:</p><input type="password" id="senhaConfirmacaoExclusao" placeholder="Senha"><br><br><button class="btn vermelho" onclick="confirmarExclusaoComSenha()">Confirmar exclusão</button><button class="btn claro" onclick="fecharModalSenhaExclusao()">Cancelar</button></div>
+  </div>
+  <!-- ========== APP ========== -->
+  <div id="appPrincipal" class="app oculto">
+    <aside>
+      <div class="marca"><img id="logoAside" class="logo-mini" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Ccircle cx='24' cy='24' r='23' fill='%23f5f0e6' stroke='%23c89b3c' stroke-width='2'/%3E%3Ctext x='24' y='29' text-anchor='middle' font-size='16' fill='%23c89b3c' font-weight='bold'%3ERF%3C/text%3E%3C/svg%3E"><div><h1>RAZÃO E FORÇA Nº 1997</h1></div></div>
+      <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.1);border-radius:12px;padding:10px;">
+        <div style="background:var(--dourado);color:#1f1a10;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;" id="avatarLetra">A</div>
+        <div><strong id="nomeLogado">Admin</strong><br><small id="perfilLogado">Administrador</small></div>
+        <button class="btn-logout" onclick="logout()">🚪</button>
+      </div>
+      <nav id="menu"></nav>
+    </aside>
+    <main>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <div><h2 id="tituloPagina">Painel geral</h2><div class="saudacao" id="saudacaoHorario"></div></div>
+        <div><span id="dataAtual"></span> 🔔<span id="contadorNotificacoes" style="background:var(--vermelho);color:#fff;border-radius:50%;padding:2px 8px;font-size:12px;display:none;">0</span></div>
+      </div>
+      <input type="text" id="buscaGlobal" class="search-bar" placeholder="🔍 Buscar em todo o sistema..." oninput="realizarBuscaGlobal()">
+      <div id="resultadoBusca" style="margin-bottom:14px;"></div>
+      <section id="painel" class="secao ativa"></section>
+      <section id="chancelaria" class="secao"></section>
+      <section id="tesouraria" class="secao"></section>
+      <section id="secretaria" class="secao"></section>
+      <section id="obreiros" class="secao"></section>
+      <section id="sessoes" class="secao"></section>
+      <section id="balaustres" class="secao"></section>
+      <section id="patrimonio" class="secao"></section>
+      <section id="relatorios" class="secao"></section>
+      <section id="perfis" class="secao"></section>
+      <section id="usuarios" class="secao"></section>
+      <section id="agenda" class="secao"></section>
+      <section id="votacoes" class="secao"></section>
+      <section id="chat" class="secao"></section>
+      <section id="estoque" class="secao"></section>
+      <section id="pix" class="secao"></section>
+      <section id="logs" class="secao"></section>
+      <section id="emprestimos" class="secao"></section>
+      <p class="rodape" style="text-align:center;margin-top:20px;font-size:11px;color:#8893a6;">Sistema integrado · Dados locais (localStorage)</p>
+    </main>
+  </div>
+  <button class="theme-toggle" onclick="toggleTema()">🌓</button>
+
+  <script>
+    (function(){
+      // ============ BANCO DE DADOS ============
+      const modulos = [
+        ['painel','📊 Painel'],['chancelaria','🏛️ Chancelaria'],['tesouraria','💰 Tesouraria'],
+        ['secretaria','📝 Secretaria'],['obreiros','👤 Obreiros'],['sessoes','📅 Sessões'],
+        ['balaustres','📜 Balaústres'],['patrimonio','🏛️ Patrimônio'],['relatorios','📈 Relatórios'],
+        ['perfis','🔐 Perfis'],['usuarios','👥 Usuários'],['agenda','📅 Agenda'],
+        ['votacoes','🗳️ Votações'],['chat','💬 Chat'],['estoque','📦 Estoque'],['pix','💲 PIX'],
+        ['logs','📜 Logs'],['emprestimos','🏷️ Empréstimos']
+      ];
+      const permissoes = {
+        'Administrador': modulos.map(m=>m[0]),
+        'Venerável Mestre': modulos.map(m=>m[0]),
+        'Secretário': ['painel','secretaria','obreiros','sessoes','balaustres','relatorios','agenda'],
+        'Tesoureiro': ['painel','tesouraria','obreiros','relatorios','pix'],
+        'Chanceler': ['painel','chancelaria','obreiros','sessoes','agenda'],
+        'Obreiro comum': ['painel','obreiros','sessoes','balaustres','chat']
+      };
+
+      function initDb() {
+        let db = JSON.parse(localStorage.getItem('rf1997db'));
+        if (!db) {
+          db = {
+            pessoas: [
+              { nome:'João Batista', categoria:'Obreiro', aniversario:'1978-04-25', telefone:'5567999990001', cargo:'Venerável Mestre', situacao:'Ativo', presenca:92, debito:0, foto:'' },
+              { nome:'Carlos Almeida', categoria:'Obreiro', aniversario:'1980-06-10', telefone:'5567999990002', cargo:'Tesoureiro', situacao:'Ativo', presenca:84, debito:150, foto:'' }
+            ],
+            documentos: [],
+            sessoes: [],
+            balaustres: [],
+            patrimonio: [],
+            financeiro: { receitas:[5800,6100,6450,6900], despesas:[3200,3500,3720,3900] },
+            usuarios: [
+              { cim:'000000', senha:'admin123', nome:'Administrador', perfil:'Administrador', email:'admin@razaoforca1997.org' },
+              { cim:'111111', senha:'veneravel123', nome:'João Batista', perfil:'Venerável Mestre', email:'veneravel@razaoforca1997.org' }
+            ],
+            logoBase64: '',
+            estoque: [],
+            votacoes: [],
+            chat: [],
+            agenda: [],
+            logs: [],
+            emprestimos: []
+          };
+        }
+        // Garantir campos novos
+        if (!db.logoBase64) db.logoBase64 = '';
+        if (!db.estoque) db.estoque = [];
+        if (!db.votacoes) db.votacoes = [];
+        if (!db.chat) db.chat = [];
+        if (!db.agenda) db.agenda = [];
+        if (!db.logs) db.logs = [];
+        if (!db.emprestimos) db.emprestimos = [];
+        // Converter usuários antigos se existirem (cpf -> cim)
+        db.usuarios = db.usuarios.map(u => {
+          if (u.cpf && !u.cim) { u.cim = u.cpf.replace(/\D/g,'').slice(0,6); delete u.cpf; }
+          return u;
+        });
+        if (!db.usuarios.find(u=>u.cim==='000000')) {
+          db.usuarios.push({ cim:'000000', senha:'admin123', nome:'Administrador', perfil:'Administrador', email:'admin@razaoforca1997.org' });
+        }
+        localStorage.setItem('rf1997db', JSON.stringify(db));
+        return db;
+      }
+      let db = initDb();
+      let usuarioLogado = null;
+      let graficos = {};
+      function salvarDb(){ localStorage.setItem('rf1997db', JSON.stringify(db)); }
+      function toast(msg, tipo='info'){
+        const c = document.createElement('div');
+        c.style.cssText = 'position:fixed;top:20px;right:20px;padding:12px 18px;border-radius:12px;color:#fff;font-weight:600;z-index:99999;';
+        c.style.background = tipo==='sucesso' ? '#1f8f5f' : tipo==='erro' ? '#b94141' : '#2c5f8a';
+        c.textContent = msg;
+        document.body.appendChild(c);
+        setTimeout(()=>c.remove(), 4000);
+      }
+      function aplicarLogo(base64){
+        const padrao = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Ccircle cx='45' cy='45' r='44' fill='%23f5f0e6' stroke='%23c89b3c' stroke-width='3'/%3E%3Ctext x='45' y='52' text-anchor='middle' font-size='28' fill='%23c89b3c' font-weight='bold'%3ERF%3C/text%3E%3C/svg%3E";
+        const mini = base64 || padrao.replace('width=\'90\' height=\'90\'','width=\'48\' height=\'48\'').replace('font-size=\'28\'','font-size=\'16\'').replace('r=\'44\'','r=\'23\'').replace('stroke-width=\'3\'','stroke-width=\'2\'');
+        document.getElementById('logoLogin').src = base64 || padrao;
+        document.getElementById('logoAside').src = mini;
+        const prev = document.getElementById('previewLogoAtual'); if(prev) prev.src = base64 || padrao;
+      }
+      // ============ TOGGLE SENHA ============
+      window.toggleSenhaLogin = function(){
+        const input = document.getElementById('senhaLogin');
+        const btn = input.parentElement.querySelector('.btn-olho');
+        if (input.type === 'password') {
+          input.type = 'text';
+          btn.textContent = '🙈'; // olho fechado
+        } else {
+          input.type = 'password';
+          btn.textContent = '👁️'; // olho aberto
+        }
+      };
+      // ============ VALIDAÇÃO CIM ============
+      function validarCIM(cim) {
+        return /^\d{6}$/.test(cim);
+      }
+      // ============ AUTENTICAÇÃO ============
+      function fazerLogin(){
+        const cim = document.getElementById('cimLogin').value.trim();
+        const senha = document.getElementById('senhaLogin').value.trim();
+        const msg = document.getElementById('msgErroLogin'); msg.style.display='none';
+        if (!cim || !senha) { msg.textContent='Preencha CIM e senha.'; msg.style.display='block'; return; }
+        if (!validarCIM(cim)) { msg.textContent='CIM inválido (6 dígitos).'; msg.style.display='block'; return; }
+        const user = db.usuarios.find(u=>u.cim===cim && u.senha===senha);
+        if (!user) { msg.textContent='CIM ou senha incorretos.'; msg.style.display='block'; return; }
+        usuarioLogado = user;
+        localStorage.setItem('rf1997_logado', JSON.stringify(user));
+        if (document.getElementById('lembrarLogin').checked) {
+          localStorage.setItem('rf1997_lembrar', JSON.stringify({cim:user.cim, nome:user.nome, perfil:user.perfil}));
+        } else localStorage.removeItem('rf1997_lembrar');
+        document.getElementById('telaLogin').classList.add('oculta');
+        document.getElementById('appPrincipal').classList.remove('oculto');
+        document.getElementById('nomeLogado').textContent = user.nome;
+        document.getElementById('perfilLogado').textContent = user.perfil;
+        document.getElementById('avatarLetra').textContent = user.nome.charAt(0).toUpperCase();
+        aplicarLogo(db.logoBase64);
+        montarMenu();
+        abrirSecao('painel','📊 Painel geral');
+        atualizarSaudacao();
+        registrarLog('Login', `Usuário ${user.nome} logou.`);
+        toast('Bem-vindo, '+user.nome+'!','sucesso');
+      }
+      function logout(){
+        registrarLog('Logout', `Usuário ${usuarioLogado?.nome} saiu.`);
+        usuarioLogado = null;
+        localStorage.removeItem('rf1997_logado');
+        document.getElementById('appPrincipal').classList.add('oculto');
+        document.getElementById('telaLogin').classList.remove('oculta');
+        document.getElementById('telaRecuperacao').classList.add('oculta');
+      }
+      function mostrarRecuperacao(){
+        document.getElementById('telaLogin').classList.add('oculta');
+        document.getElementById('telaRecuperacao').classList.remove('oculta');
+      }
+      function voltarLogin(){
+        document.getElementById('telaRecuperacao').classList.add('oculta');
+        document.getElementById('telaLogin').classList.remove('oculta');
+      }
+      function recuperarSenha(){
+        const cim = document.getElementById('cimRecuperacao').value.trim();
+        const email = document.getElementById('emailRecuperacao').value.trim();
+        const msgOk = document.getElementById('msgRecuperacao'); msgOk.style.display='none';
+        const msgEr = document.getElementById('msgErroRec'); msgEr.style.display='none';
+        if (!cim || !email) { msgEr.textContent='Preencha todos os campos.'; msgEr.style.display='block'; return; }
+        if (!validarCIM(cim)) { msgEr.textContent='CIM inválido.'; msgEr.style.display='block'; return; }
+        const user = db.usuarios.find(u=>u.cim===cim && u.email===email);
+        if (!user) { msgEr.textContent='Dados não encontrados.'; msgEr.style.display='block'; return; }
+        msgOk.textContent='✅ Instruções enviadas para '+email+'.';
+        msgOk.style.display='block';
+        toast('Simulação: e-mail enviado para '+email,'info');
+      }
+      function verificarSessao(){
+        const logado = JSON.parse(localStorage.getItem('rf1997_logado'));
+        if (logado) {
+          usuarioLogado = logado;
+          document.getElementById('telaLogin').classList.add('oculta');
+          document.getElementById('appPrincipal').classList.remove('oculto');
+          document.getElementById('nomeLogado').textContent = logado.nome;
+          document.getElementById('perfilLogado').textContent = logado.perfil;
+          document.getElementById('avatarLetra').textContent = logado.nome.charAt(0).toUpperCase();
+          aplicarLogo(db.logoBase64);
+          montarMenu();
+          abrirSecao('painel','📊 Painel geral');
+          atualizarSaudacao();
+        } else {
+          const lembrado = JSON.parse(localStorage.getItem('rf1997_lembrar'));
+          if (lembrado) {
+            document.getElementById('cimLogin').value = lembrado.cim;
+            document.getElementById('lembrarLogin').checked = true;
+          }
+        }
+      }
+      // ============ TEMA ============
+      function toggleTema(){
+        document.body.classList.toggle('dark');
+        localStorage.setItem('rf1997_tema', document.body.classList.contains('dark')?'dark':'light');
+      }
+      if (localStorage.getItem('rf1997_tema')==='dark') document.body.classList.add('dark');
+      // ============ LOGO ============
+      function abrirModalLogo(){ if(usuarioLogado?.perfil!=='Administrador'){ toast('Apenas Admin.','erro'); return; } aplicarLogo(db.logoBase64); document.getElementById('modalLogo').classList.remove('oculta'); }
+      function fecharModalLogo(){ document.getElementById('modalLogo').classList.add('oculta'); }
+      function salvarNovaLogo(){
+        const file = document.getElementById('arquivoLogo').files[0];
+        if(!file) return toast('Selecione imagem.','erro');
+        const reader = new FileReader();
+        reader.onload = e => { db.logoBase64 = e.target.result; salvarDb(); aplicarLogo(db.logoBase64); toast('Logo atualizada!','sucesso'); fecharModalLogo(); };
+        reader.readAsDataURL(file);
+      }
+      function restaurarLogoPadrao(){ db.logoBase64=''; salvarDb(); aplicarLogo(''); toast('Logo padrão restaurada.','sucesso'); fecharModalLogo(); }
+      // ============ NAVEGAÇÃO ============
+      function montarMenu(){
+        const nav = document.getElementById('menu'); nav.innerHTML='';
+        if (!usuarioLogado) return;
+        const acesso = permissoes[usuarioLogado.perfil] || [];
+        modulos.forEach(([id,nome])=>{
+          if (!acesso.includes(id)) return;
+          const b = document.createElement('button');
+          b.innerHTML = '<span style="font-size:17px;">'+nome.split(' ')[0]+'</span> '+nome.slice(nome.indexOf(' ')+1);
+          b.dataset.id = id;
+          b.onclick = ()=>abrirSecao(id, nome);
+          nav.appendChild(b);
+        });
+      }
+      function abrirSecao(id, nome){
+        document.querySelectorAll('.secao').forEach(s=>s.classList.remove('ativa'));
+        const sec = document.getElementById(id); if(sec) sec.classList.add('ativa');
+        document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('ativo', b.dataset.id===id));
+        document.getElementById('tituloPagina').textContent = nome;
+        renderSecao(id);
+      }
+      function renderSecao(id){
+        const map = {
+          painel: renderPainel, chancelaria: renderChancelaria, tesouraria: renderTesouraria,
+          secretaria: renderSecretaria, obreiros: renderObreiros, sessoes: renderSessoes,
+          balaustres: renderBalaustres, patrimonio: renderPatrimonio, relatorios: renderRelatorios,
+          perfis: renderPerfis, usuarios: renderUsuarios, agenda: renderAgenda,
+          votacoes: renderVotacoes, chat: renderChat, estoque: renderEstoque, pix: renderPix,
+          logs: renderLogs, emprestimos: renderEmprestimos
+        };
+        if (map[id]) map[id]();
+        atualizarNotificacoes();
+      }
+      // ============ RENDERIZAÇÕES ============
+      function dinheiro(v){ return Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
+      function hojeISO(){ return new Date().toISOString().slice(0,10); }
+      function tabela(id,cols,rows,ordenavel=true){
+        const t = document.getElementById(id); if(!t) return;
+        t.innerHTML = `<thead><tr>${cols.map((c,i)=>`<th onclick="ordenarTabela('${id}',${i})">${c}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody>`;
+      }
+      function ordenarTabela(id, colIndex){
+        const t = document.getElementById(id);
+        const tbody = t.querySelector('tbody');
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        const sorted = rows.sort((a,b)=>{
+          const va = a.children[colIndex].textContent.trim();
+          const vb = b.children[colIndex].textContent.trim();
+          const na = parseFloat(va.replace(/[^\d,-]/g,'').replace(',','.'));
+          const nb = parseFloat(vb.replace(/[^\d,-]/g,'').replace(',','.'));
+          if (!isNaN(na) && !isNaN(nb)) return na - nb;
+          return va.localeCompare(vb);
+        });
+        tbody.innerHTML = ''; sorted.forEach(r=>tbody.appendChild(r));
+      }
+      function criarGrafico(id, tipo, labels, dados){
+        const ctx = document.getElementById(id); if(!ctx) return;
+        if (graficos[id]) graficos[id].destroy();
+        graficos[id] = new Chart(ctx, {
+          type, data: { labels, datasets: [{ data: dados, borderColor: '#c89b3c', backgroundColor: tipo==='bar'?'rgba(200,155,60,0.2)':'transparent' }] },
+          options: { responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }
+        });
+      }
+      function criarGraficoPizza(id,labels,dados){
+        const ctx = document.getElementById(id); if(!ctx) return;
+        new Chart(ctx, { type:'pie', data:{ labels, datasets:[{ data:dados, backgroundColor:['#c89b3c','#1f8f5f','#b94141','#4a90d9'] }] } });
+      }
+      function registrarLog(acao,detalhes=''){
+        if (!usuarioLogado) return;
+        db.logs.push({ data: new Date().toISOString(), usuario: usuarioLogado.nome, acao, detalhes });
+        salvarDb();
+      }
+      // ============ EXCLUSÃO COM SENHA ============
+      let exclusaoPendente = null;
+      function solicitarSenhaExclusao(fn, ...args){
+        exclusaoPendente = { fn, args };
+        document.getElementById('modalSenhaExclusao').classList.remove('oculta');
+      }
+      function confirmarExclusaoComSenha(){
+        const senha = document.getElementById('senhaConfirmacaoExclusao').value;
+        if (senha === 'admin123' && exclusaoPendente) {
+          exclusaoPendente.fn(...exclusaoPendente.args);
+          fecharModalSenhaExclusao();
+          registrarLog('Exclusão confirmada', exclusaoPendente.args);
+          toast('Exclusão confirmada.','sucesso');
+        } else {
+          toast('Senha incorreta!','erro');
+        }
+      }
+      function fecharModalSenhaExclusao(){ document.getElementById('modalSenhaExclusao').classList.add('oculta'); exclusaoPendente=null; }
+      // ============ SAUDAÇÃO ============
+      function atualizarSaudacao(){
+        const h = new Date().getHours();
+        let texto = 'Bom dia';
+        if (h>=12 && h<18) texto = 'Boa tarde';
+        else if (h>=18) texto = 'Boa noite';
+        document.getElementById('saudacaoHorario').textContent = texto + ', ' + (usuarioLogado?.nome||'');
+      }
+      // ============ BUSCA GLOBAL ============
+      function realizarBuscaGlobal(){
+        const termo = document.getElementById('buscaGlobal').value.toLowerCase();
+        const div = document.getElementById('resultadoBusca');
+        if (!termo) { div.style.display='none'; return; }
+        const res = [];
+        db.pessoas.filter(p=>p.nome.toLowerCase().includes(termo)).forEach(p=>res.push(`👤 ${p.nome} (${p.categoria})`));
+        db.documentos.filter(d=>d.titulo.toLowerCase().includes(termo)).forEach(d=>res.push(`📄 ${d.titulo}`));
+        db.sessoes.filter(s=>s.tipo.toLowerCase().includes(termo)).forEach(s=>res.push(`📅 Sessão ${s.data}`));
+        div.innerHTML = res.length ? res.map(r=>`<div class="card" style="padding:8px;">${r}</div>`).join('') : '<p style="color:#667085;">Nada encontrado.</p>';
+        div.style.display='block';
+      }
+      // ============ RENDER PÁGINAS ============
+      function renderPainel(){
+        const obreiros = db.pessoas.filter(p=>p.categoria==='Obreiro');
+        const presenca = obreiros.length ? Math.round(obreiros.reduce((s,p)=>s+p.presenca,0)/obreiros.length) : 0;
+        const receita = db.financeiro.receitas.at(-1)||0;
+        const pend = db.pessoas.filter(p=>p.debito>0).length;
+        document.getElementById('painel').innerHTML = `
+          <div class="grid">
+            <div class="card"><h3>👥 Obreiros</h3><div class="metric">${obreiros.length}</div></div>
+            <div class="card"><h3>📊 Presença</h3><div class="metric">${presenca}%</div></div>
+            <div class="card"><h3>💰 Receita</h3><div class="metric">${dinheiro(receita)}</div></div>
+            <div class="card"><h3>⚠️ Pendências</h3><div class="metric">${pend}</div></div>
+          </div>
+          <div class="grid2" style="grid-template-columns:1fr 1fr;">
+            <div class="card"><h3>📈 Indicadores</h3><canvas id="graficoGeral"></canvas></div>
+            <div class="card"><h3>🥧 Distribuição</h3><canvas id="graficoPizza"></canvas></div>
+          </div>
+          <div class="card"><h3>🎂 Aniversariantes</h3><div id="aniversariantes"></div></div>`;
+        criarGrafico('graficoGeral','bar',['Obreiros','Presença %','Receita/100','Pendências'],[obreiros.length,presenca,Math.round(receita/100),pend]);
+        const situacoes = {};
+        db.pessoas.filter(p=>p.categoria==='Obreiro').forEach(p=>{ situacoes[p.situacao] = (situacoes[p.situacao]||0)+1; });
+        criarGraficoPizza('graficoPizza', Object.keys(situacoes), Object.values(situacoes));
+        const box = document.getElementById('aniversariantes');
+        const hoje = new Date(); const md = String(hoje.getMonth()+1).padStart(2,'0')+'-'+String(hoje.getDate()).padStart(2,'0');
+        const aniv = db.pessoas.filter(p=>p.aniversario?.slice(5)===md);
+        box.innerHTML = aniv.length ? aniv.map(p=>`<div class="mini-item">${p.nome} <button class="btn verde sm" onclick="window.felicitar('${p.telefone}','${p.nome}')">💬</button></div>`).join('') : '<p class="muted">Nenhum aniversário hoje.</p>';
+      }
+      function renderChancelaria(){
+        document.getElementById('chancelaria').innerHTML = `
+          <div class="card"><h3>QR Code Presença</h3><div class="qr-area"><div class="qr-box"><canvas id="qrcode"></canvas></div><div><input id="sessaoQr" value="Sessão"><br><button class="btn dourado" onclick="gerarQr()">Gerar</button><button class="btn verde" onclick="registrarPresencaAleatoria()">Simular</button></div></div></div>
+          <div class="card"><h3>Cadastrar pessoa</h3><div class="form-grid"><div><label>Nome</label><input id="cadNome"></div><div><label>Categoria</label><select id="cadCategoria"><option>Obreiro</option><option>Cunhada</option></select></div><div><label>Aniversário</label><input id="cadAniv" type="date"></div><div><label>Telefone</label><input id="cadFone"></div><div><label>Cargo</label><input id="cadCargo"></div><div><label>Situação</label><select id="cadSituacao"><option>Ativo</option><option>Licenciado</option><option>Inativo</option></select></div><div><label>Foto</label><input type="file" id="cadFoto" accept="image/*"></div></div><button class="btn verde" onclick="salvarPessoa()">Salvar</button></div>
+          <div class="card"><h3>Cadastros</h3><table id="tabelaPessoas"></table></div>`;
+        gerarQr();
+        tabela('tabelaPessoas',['Nome','Categoria','Aniversário','Telefone','Cargo','Situação','Foto','Ações'], db.pessoas.map((p,i)=>[
+          p.nome, p.categoria, p.aniversario||'-', p.telefone||'-', p.cargo||'-', p.situacao,
+          p.foto ? `<img src="${p.foto}" class="foto-mini">` : '-',
+          `<button class="btn vermelho sm" onclick="solicitarSenhaExclusao(excluirPessoa,${i})">🗑️</button>`
+        ]));
+      }
+      function salvarPessoa(){
+        const nome = document.getElementById('cadNome').value.trim();
+        if (!nome) return toast('Nome obrigatório.','erro');
+        const fotoInput = document.getElementById('cadFoto');
+        const pessoa = {
+          nome, categoria: document.getElementById('cadCategoria').value,
+          aniversario: document.getElementById('cadAniv').value,
+          telefone: document.getElementById('cadFone').value.trim(),
+          cargo: document.getElementById('cadCargo').value.trim(),
+          situacao: document.getElementById('cadSituacao').value,
+          presenca: 0, debito: 0, foto: ''
+        };
+        if (fotoInput.files[0]) {
+          const reader = new FileReader();
+          reader.onload = e => { pessoa.foto = e.target.result; finalizarSalvarPessoa(pessoa); };
+          reader.readAsDataURL(fotoInput.files[0]);
+        } else {
+          finalizarSalvarPessoa(pessoa);
+        }
+      }
+      function finalizarSalvarPessoa(pessoa){
+        db.pessoas.push(pessoa); salvarDb(); renderChancelaria();
+        registrarLog('Cadastro', `Pessoa ${pessoa.nome} cadastrada.`);
+        toast('Salvo!','sucesso');
+      }
+      function excluirPessoa(i){ db.pessoas.splice(i,1); salvarDb(); renderChancelaria(); }
+      function gerarQr(){ QRCode.toCanvas(document.getElementById('qrcode'), 'RF1997|'+new Date().toISOString(), {width:180}); }
+      function registrarPresencaAleatoria(){
+        db.pessoas.filter(p=>p.categoria==='Obreiro').forEach(p=>p.presenca=Math.min(100,Math.max(50,p.presenca+Math.round(Math.random()*10-4))));
+        salvarDb(); renderChancelaria(); toast('Presenças simuladas.','sucesso');
+      }
+      function renderTesouraria(){
+        document.getElementById('tesouraria').innerHTML = `<div class="card"><h3>Resumo</h3><canvas id="graficoFinanceiro"></canvas></div><div class="card"><h3>Cobrança</h3><select id="cobObreiro">${db.pessoas.filter(p=>p.categoria==='Obreiro').map(p=>`<option>${p.nome}</option>`).join('')}</select><input id="cobValor" type="number" value="150"><select id="cobForma"><option>Pix</option></select><button class="btn verde" onclick="enviarCobranca()">Enviar</button></div><div class="card"><h3>Débitos</h3><table id="tabelaFinanceira"></table></div>`;
+        tabela('tabelaFinanceira',['Obreiro','Presença','Débito','Status','Ação'],db.pessoas.filter(p=>p.categoria==='Obreiro').map(p=>[p.nome,p.presenca+'%',dinheiro(p.debito),p.debito>0?'<span class="bad">Pendente</span>':'<span class="ok">Em dia</span>',`<button class="btn verde sm" onclick="cobrarDireto('${p.nome}')">Cobrar</button>`]));
+        criarGrafico('graficoFinanceiro','line',['Jan','Fev','Mar','Abr'],db.financeiro.receitas);
+      }
+      function enviarCobranca(){
+        const nome = document.getElementById('cobObreiro').value;
+        const valor = parseFloat(document.getElementById('cobValor').value);
+        const p = db.pessoas.find(x=>x.nome===nome);
+        if(!p||!valor) return;
+        p.debito += valor; salvarDb(); renderTesouraria();
+        window.open('https://wa.me/'+p.telefone+'?text='+encodeURIComponent(`Cobrança de ${dinheiro(valor)}`),'_blank');
+        registrarLog('Cobrança', `${valor} para ${p.nome}`);
+      }
+      function cobrarDireto(nome){ const p=db.pessoas.find(x=>x.nome===nome); if(p) window.open('https://wa.me/'+p.telefone+'?text='+encodeURIComponent(`Regularize seu débito de ${dinheiro(p.debito)}`),'_blank'); }
+      function renderSecretaria(){
+        document.getElementById('secretaria').innerHTML = `<div class="card"><h3>Publicar</h3><div class="form-grid"><div><label>Tipo</label><select id="docTipo"><option>Ata</option></select></div><div><label>Título</label><input id="docTitulo"></div><div><label>Data</label><input id="docData" type="date"></div></div><textarea id="docTexto"></textarea><button class="btn verde" onclick="salvarDocumento()">Publicar</button></div><div class="card"><h3>Documentos</h3><table id="tabelaDocumentos"></table></div>`;
+        tabela('tabelaDocumentos',['Tipo','Título','Data'],db.documentos.map(d=>[d.tipo,d.titulo,d.data]));
+      }
+      function salvarDocumento(){
+        db.documentos.push({tipo:document.getElementById('docTipo').value, titulo:document.getElementById('docTitulo').value.trim(), data:document.getElementById('docData').value||hojeISO(), texto:document.getElementById('docTexto').value});
+        salvarDb(); renderSecretaria(); registrarLog('Documento','Publicado');
+      }
+      function renderObreiros(){ document.getElementById('obreiros').innerHTML = `<div class="card"><h3>Obreiros</h3><table id="tabelaObreiros"></table></div>`; tabela('tabelaObreiros',['Nome','Cargo','Situação','Presença','Débito'],db.pessoas.filter(p=>p.categoria==='Obreiro').map(p=>[p.nome,p.cargo,p.situacao,p.presenca+'%',dinheiro(p.debito)])); }
+      function renderSessoes(){ document.getElementById('sessoes').innerHTML = `<div class="card"><h3>Sessões</h3><button class="btn verde" onclick="novaSessao()">Criar</button><table id="tabelaSessoes"></table></div>`; tabela('tabelaSessoes',['Data','Tipo','Presentes','Total'],db.sessoes.map(s=>[s.data,s.tipo,s.presentes,s.total])); }
+      function novaSessao(){ db.sessoes.push({data:hojeISO(),tipo:'Ordinária',presentes:Math.floor(Math.random()*10)+10,total:20}); salvarDb(); renderSessoes(); }
+      function renderBalaustres(){ document.getElementById('balaustres').innerHTML = `<div class="card"><h3>Balaústres</h3><table id="tabelaBalaustres"></table></div>`; tabela('tabelaBalaustres',['Data','Título','Status'],db.balaustres.map(b=>[b.data,b.titulo,b.status])); }
+      function renderPatrimonio(){ document.getElementById('patrimonio').innerHTML = `<div class="card"><h3>Patrimônio</h3><input id="patItem" placeholder="Item"><input id="patValor" type="number" placeholder="Valor"><select id="patSituacao"><option>Em uso</option></select><button class="btn verde" onclick="salvarPatrimonio()">Salvar</button><table id="tabelaPatrimonio"></table></div>`; tabela('tabelaPatrimonio',['Item','Valor','Situação'],db.patrimonio.map(p=>[p.item,dinheiro(p.valor),p.situacao])); }
+      function salvarPatrimonio(){ db.patrimonio.push({item:document.getElementById('patItem').value,valor:Number(document.getElementById('patValor').value),situacao:document.getElementById('patSituacao').value}); salvarDb(); renderPatrimonio(); }
+      function renderRelatorios(){ document.getElementById('relatorios').innerHTML = `<div class="card"><canvas id="graficoRelPresenca"></canvas></div><button class="btn" onclick="window.print()">Imprimir</button>`; }
+      function renderPerfis(){ document.getElementById('perfis').innerHTML = `<div class="card"><h3>Perfis</h3><table id="tabelaPerfis"></table></div><div class="card" id="cardAdminLogo"><button class="btn dourado" onclick="abrirModalLogo()">Alterar logo</button></div>`; tabela('tabelaPerfis',['Perfil','Módulos'],Object.keys(permissoes).map(k=>[k,permissoes[k].join(', ')])); if(usuarioLogado?.perfil!=='Administrador') document.getElementById('cardAdminLogo').style.display='none'; }
+      function renderUsuarios(){
+        document.getElementById('usuarios').innerHTML = `<div class="card"><h3>Cadastrar usuário</h3><input id="usrNome" placeholder="Nome"><input id="usrCim" placeholder="CIM (6 dígitos)" maxlength="6"><select id="usrPerfil">${Object.keys(permissoes).map(p=>`<option>${p}</option>`).join('')}</select><input id="usrSenha" type="password" placeholder="Senha"><input id="usrEmail" placeholder="E-mail"><button class="btn verde" onclick="salvarUsuario()">Salvar</button></div><div class="card"><h3>Usuários</h3><table id="tabelaUsuarios"></table></div>`;
+        tabela('tabelaUsuarios',['Nome','CIM','Perfil','E-mail','Ação'],db.usuarios.map((u,i)=>[u.nome,u.cim,u.perfil,u.email,`<button class="btn vermelho sm" onclick="solicitarSenhaExclusao(excluirUsuario,${i})">🗑️</button>`]));
+      }
+      function salvarUsuario(){
+        const cim = document.getElementById('usrCim').value.trim();
+        if (!validarCIM(cim)) return toast('CIM inválido (6 dígitos).','erro');
+        db.usuarios.push({
+          cim, senha: document.getElementById('usrSenha').value||'123456',
+          nome: document.getElementById('usrNome').value.trim(),
+          perfil: document.getElementById('usrPerfil').value,
+          email: document.getElementById('usrEmail').value.trim()
+        });
+        salvarDb(); renderUsuarios(); registrarLog('Usuário cadastrado', cim);
+      }
+      function excluirUsuario(i){ db.usuarios.splice(i,1); salvarDb(); renderUsuarios(); }
+      // ============ OUTRAS SEÇÕES (resumo) ============
+      function renderAgenda(){
+        const hoje = new Date(); const ano=hoje.getFullYear(), mes=hoje.getMonth();
+        let html = '<div class="card"><h3>Agenda</h3><div class="calendar">';
+        for(let d=1;d<=new Date(ano,mes+1,0).getDate();d++){ html+=`<div class="day${hojeISO()===`${ano}-${String(mes+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`?' today':''}" onclick="adicionarEventoAgenda('${ano}-${String(mes+1).padStart(2,'0')}-${String(d).padStart(2,'0')}')">${d}</div>`; }
+        html+='</div><div id="listaEventos"></div></div>';
+        document.getElementById('agenda').innerHTML=html;
+      }
+      function adicionarEventoAgenda(data){ const t=prompt('Evento:'); if(t){ db.agenda.push({data,titulo:t}); salvarDb(); renderAgenda(); } }
+      function renderVotacoes(){
+        document.getElementById('votacoes').innerHTML = `<div class="card"><input id="votPauta" placeholder="Pauta"><button class="btn verde" onclick="criarVotacao()">Criar</button></div><div id="listaVotacoes"></div>`;
+        const lista = document.getElementById('listaVotacoes');
+        lista.innerHTML = db.votacoes.map((v,i)=>`<div>${v.pauta} (${v.votos.length}) <button onclick="votar(${i})">Votar</button></div>`).join('');
+      }
+      function criarVotacao(){ db.votacoes.push({pauta:document.getElementById('votPauta').value,votos:[]}); salvarDb(); renderVotacoes(); }
+      function votar(i){ const v=prompt('Voto:'); db.votacoes[i].votos.push({usuario:usuarioLogado.nome,voto:v}); salvarDb(); renderVotacoes(); }
+      function renderChat(){
+        document.getElementById('chat').innerHTML = `<div class="chat-box" id="chatBox"></div><input id="msgChat"><button onclick="enviarMensagem()">Enviar</button>`;
+        document.getElementById('chatBox').innerHTML = db.chat.map(m=>`<div class="chat-msg${m.usuario===usuarioLogado.nome?' me':''}">${m.usuario}: ${m.texto}</div>`).join('');
+      }
+      function enviarMensagem(){ db.chat.push({usuario:usuarioLogado.nome,texto:document.getElementById('msgChat').value}); salvarDb(); renderChat(); }
+      function renderEstoque(){
+        document.getElementById('estoque').innerHTML = `<div class="card"><input id="estItem" placeholder="Item"><input id="estQtd" type="number"><button onclick="adicionarEstoque()">Adicionar</button><table id="tabelaEstoque"></table></div>`;
+        tabela('tabelaEstoque',['Item','Qtd','Ação'],db.estoque.map((e,i)=>[e.item,e.qtd,`<button onclick="movimentarEstoque(${i},1)">+1</button><button onclick="movimentarEstoque(${i},-1)">-1</button>`]));
+      }
+      function adicionarEstoque(){ db.estoque.push({item:document.getElementById('estItem').value,qtd:parseInt(document.getElementById('estQtd').value)}); salvarDb(); renderEstoque(); }
+      function movimentarEstoque(i,d){ db.estoque[i].qtd+=d; salvarDb(); renderEstoque(); }
+      function renderPix(){
+        document.getElementById('pix').innerHTML = `<input id="pixChave" placeholder="Chave PIX"><input id="pixValor" type="number" step="0.01"><button onclick="gerarPix()">Gerar QR</button><canvas id="qrcodePix"></canvas>`;
+      }
+      function gerarPix(){
+        QRCode.toCanvas(document.getElementById('qrcodePix'), `00020126580014br.gov.bcb.pix0136${document.getElementById('pixChave').value}520400005303986540${parseFloat(document.getElementById('pixValor').value).toFixed(2)}5802BR5925Doacao6009SAO PAULO62070503***`, {width:200});
+      }
+      function renderLogs(){
+        document.getElementById('logs').innerHTML = `<div class="card"><h3>Logs</h3><table id="tabelaLogs"></table></div>`;
+        tabela('tabelaLogs',['Data','Usuário','Ação','Detalhes'], db.logs.map(l=>[new Date(l.data).toLocaleString(), l.usuario, l.acao, l.detalhes]));
+      }
+      function renderEmprestimos(){
+        document.getElementById('emprestimos').innerHTML = `<div class="card"><h3>Empréstimos</h3><select id="empItem">${db.patrimonio.map((p,i)=>`<option value="${i}">${p.item}</option>`).join('')}</select><input id="empNome" placeholder="Responsável"><input id="empDataDev" type="date"><button onclick="registrarEmprestimo()">Registrar</button><table id="tabelaEmprestimos"></table></div>`;
+        tabela('tabelaEmprestimos',['Item','Responsável','Data saída','Devolução'], db.emprestimos.map(e=>[db.patrimonio[e.itemIndex]?.item, e.responsavel, e.dataSaida, e.dataDev]));
+      }
+      function registrarEmprestimo(){
+        db.emprestimos.push({itemIndex:parseInt(document.getElementById('empItem').value), responsavel:document.getElementById('empNome').value, dataSaida:hojeISO(), dataDev:document.getElementById('empDataDev').value});
+        salvarDb(); renderEmprestimos();
+      }
+      function atualizarNotificacoes(){
+        const hoje = new Date(); const md = String(hoje.getMonth()+1).padStart(2,'0')+'-'+String(hoje.getDate()).padStart(2,'0');
+        const aniv = db.pessoas.filter(p=>p.aniversario?.slice(5)===md).length;
+        const pend = db.pessoas.filter(p=>p.debito>0).length;
+        const total = aniv+pend;
+        const cont = document.getElementById('contadorNotificacoes');
+        cont.textContent = total; cont.style.display = total>0 ? 'inline-block' : 'none';
+      }
+      // ============ GLOBAIS ============
+      window.felicitar = (tel,nome)=>window.open('https://wa.me/'+tel+'?text='+encodeURIComponent(`Feliz aniversário, ${nome}!`));
+      window.fazerLogin = fazerLogin; window.logout = logout; window.mostrarRecuperacao = mostrarRecuperacao; window.voltarLogin = voltarLogin;
+      window.recuperarSenha = recuperarSenha; window.gerarQr = gerarQr; window.registrarPresencaAleatoria = registrarPresencaAleatoria;
+      window.salvarPessoa = salvarPessoa; window.excluirPessoa = excluirPessoa; window.enviarCobranca = enviarCobranca;
+      window.cobrarDireto = cobrarDireto; window.salvarDocumento = salvarDocumento; window.novaSessao = novaSessao;
+      window.salvarPatrimonio = salvarPatrimonio; window.abrirModalLogo = abrirModalLogo; window.fecharModalLogo = fecharModalLogo;
+      window.salvarNovaLogo = salvarNovaLogo; window.restaurarLogoPadrao = restaurarLogoPadrao; window.toggleTema = toggleTema;
+      window.salvarUsuario = salvarUsuario; window.excluirUsuario = excluirUsuario;
+      window.adicionarEventoAgenda = adicionarEventoAgenda; window.criarVotacao = criarVotacao; window.votar = votar;
+      window.enviarMensagem = enviarMensagem; window.adicionarEstoque = adicionarEstoque; window.movimentarEstoque = movimentarEstoque;
+      window.gerarPix = gerarPix; window.registrarEmprestimo = registrarEmprestimo;
+      window.ordenarTabela = ordenarTabela; window.realizarBuscaGlobal = realizarBuscaGlobal;
+      window.solicitarSenhaExclusao = solicitarSenhaExclusao; window.confirmarExclusaoComSenha = confirmarExclusaoComSenha; window.fecharModalSenhaExclusao = fecharModalSenhaExclusao;
+
+      // ============ INIT ============
+      document.getElementById('dataAtual').textContent = new Date().toLocaleDateString('pt-BR');
+      aplicarLogo(db.logoBase64);
+      verificarSessao();
+      if (!usuarioLogado) montarMenu();
+      setInterval(()=>{ if(usuarioLogado) atualizarNotificacoes(); }, 60000);
+    })();
+  </script>
+</body>
+</html>
